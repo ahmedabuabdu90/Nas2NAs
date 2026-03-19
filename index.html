@@ -1,0 +1,1272 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>الهيكل التنظيمي | من الناس إلى الناس</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Cairo+Play:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:       #0f2240;
+  --navy-mid:   #1a3c5e;
+  --blue:       #2563a8;
+  --teal:       #0f7173;
+  --teal-light: #14a5a8;
+  --gold:       #c8963e;
+  --gold-light: #e8b458;
+  --orange:     #d4580a;
+  --orange-light:#f07030;
+  --bg:         #060f1c;
+  --bg2:        #0a1628;
+  --surface:    #0f1f35;
+  --surface2:   #162840;
+  --border:     rgba(255,255,255,0.08);
+  --text:       #e8eef6;
+  --text-dim:   #8ca0bc;
+  --text-faint: #4a6080;
+  --glow-teal:  rgba(15,113,115,0.35);
+  --glow-gold:  rgba(200,150,62,0.4);
+  --glow-orange:rgba(212,88,10,0.35);
+  --glow-blue:  rgba(37,99,168,0.35);
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  font-family: 'Cairo', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── BACKGROUND GRID ───────────────────────────── */
+body::before {
+  content:'';
+  position:fixed; inset:0;
+  background-image:
+    linear-gradient(rgba(15,113,115,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(15,113,115,0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events:none; z-index:0;
+}
+
+/* ── HEADER ────────────────────────────────────── */
+.header {
+  position: relative; z-index:10;
+  padding: 36px 48px 28px;
+  background: linear-gradient(135deg, rgba(15,34,64,0.98) 0%, rgba(10,22,40,0.98) 100%);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 24px;
+}
+.header::after {
+  content:'';
+  position:absolute; bottom:-1px; left:0; right:0; height:2px;
+  background: linear-gradient(90deg, transparent, var(--teal), var(--gold), var(--teal), transparent);
+}
+.header-right { display:flex; flex-direction:column; gap:4px; }
+.synergy-badge {
+  font-size: 11px; font-weight:700; letter-spacing:3px; text-transform:uppercase;
+  color: var(--teal-light); opacity:0.9;
+}
+.header h1 {
+  font-family: 'Cairo Play', sans-serif;
+  font-size: clamp(22px, 3vw, 34px);
+  font-weight: 900; color: #fff;
+  line-height: 1.1;
+}
+.header h1 span { color: var(--gold); }
+.header-left { text-align:left; }
+.header-sub {
+  font-size:13px; color: var(--text-dim);
+  margin-top:6px; line-height:1.6;
+}
+.stats-row {
+  display:flex; gap:28px; margin-top:16px; flex-wrap:wrap;
+}
+.stat-pill {
+  display:flex; align-items:center; gap:8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  padding: 6px 16px;
+}
+.stat-pill .dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.stat-pill .label { font-size:13px; color:var(--text-dim); }
+.stat-pill .val { font-size:14px; font-weight:700; }
+
+/* ── LEGEND + FILTER ───────────────────────────── */
+.controls {
+  position:relative; z-index:10;
+  display:flex; align-items:center; justify-content:space-between;
+  padding: 16px 48px;
+  background: rgba(10,22,40,0.95);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap; gap:16px;
+}
+.legend { display:flex; gap:20px; flex-wrap:wrap; }
+.leg-item {
+  display:flex; align-items:center; gap:8px;
+  font-size:12px; color:var(--text-dim);
+  cursor:pointer; transition:color .2s;
+}
+.leg-item:hover { color:var(--text); }
+.leg-dot {
+  width:10px; height:10px; border-radius:3px;
+  flex-shrink:0;
+}
+.filter-hint {
+  font-size:12px; color:var(--text-faint);
+  display:flex; align-items:center; gap:8px;
+}
+.filter-hint kbd {
+  background:var(--surface2); border:1px solid var(--border);
+  border-radius:4px; padding:2px 7px;
+  font-family:'Cairo',sans-serif; font-size:11px; color:var(--text-dim);
+}
+
+/* ── CHART CANVAS ──────────────────────────────── */
+.chart-wrap {
+  position:relative; z-index:5;
+  padding: 48px 32px 80px;
+  overflow:auto;
+}
+.chart {
+  min-width: 1100px;
+  max-width: 1500px;
+  margin: 0 auto;
+  position: relative;
+}
+
+/* SVG connectors */
+.connectors {
+  position:absolute; top:0; left:0;
+  width:100%; height:100%;
+  pointer-events:none;
+  overflow:visible;
+}
+.connector {
+  fill:none;
+  stroke: rgba(15,113,115,0.3);
+  stroke-width:1.5;
+  stroke-dasharray:4 3;
+  animation: dashMove 20s linear infinite;
+}
+.connector-gold { stroke: rgba(200,150,62,0.25); }
+.connector-blue  { stroke: rgba(37,99,168,0.25); }
+@keyframes dashMove { to { stroke-dashoffset:-100; } }
+
+/* ── NODES ─────────────────────────────────────── */
+.level { display:flex; justify-content:center; gap:16px; position:relative; }
+
+/* Leader */
+.node-leader {
+  display:flex; flex-direction:column; align-items:center;
+  margin-bottom: 8px;
+}
+.leader-card {
+  background: linear-gradient(135deg, #1a2f10 0%, #2a4a18 40%, #1e3c10 100%);
+  border: 2px solid var(--gold);
+  border-radius:20px;
+  padding: 22px 48px;
+  text-align:center;
+  cursor:pointer;
+  position:relative;
+  transition: transform .3s cubic-bezier(.34,1.56,.64,1), box-shadow .3s;
+  box-shadow: 0 0 40px rgba(200,150,62,0.2), 0 8px 32px rgba(0,0,0,0.5);
+  min-width: 280px;
+}
+.leader-card:hover, .leader-card.active {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 0 60px rgba(200,150,62,0.4), 0 16px 48px rgba(0,0,0,0.6);
+}
+.leader-card::before {
+  content:'★';
+  position:absolute; top:-14px; left:50%; transform:translateX(-50%);
+  background:var(--gold); color:#000;
+  width:28px; height:28px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:13px; font-weight:900; line-height:28px;
+}
+.leader-title { font-size:11px; letter-spacing:3px; color:var(--gold); margin-bottom:8px; text-transform:uppercase; }
+.leader-name { font-size:22px; font-weight:900; color:#fff; margin-bottom:4px; }
+.leader-sub { font-size:12px; color:rgba(200,150,62,0.7); }
+
+/* Unit headers */
+.units-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin: 0 0 8px;
+}
+.unit-header {
+  border-radius:14px;
+  padding: 16px 14px;
+  text-align:center;
+  cursor:pointer;
+  transition: transform .25s cubic-bezier(.34,1.56,.64,1), box-shadow .25s;
+  position:relative; overflow:hidden;
+}
+.unit-header::after {
+  content:'';
+  position:absolute; inset:0;
+  background:linear-gradient(135deg, rgba(255,255,255,0.06) 0%, transparent 60%);
+  pointer-events:none;
+}
+.unit-header:hover { transform: translateY(-3px); }
+.unit-header.u-teal  { background:linear-gradient(135deg,#0a3638,#0f4f52); border:1px solid rgba(15,113,115,0.6); box-shadow:0 4px 24px rgba(15,113,115,0.2); }
+.unit-header.u-blue  { background:linear-gradient(135deg,#0d1f40,#162d5a); border:1px solid rgba(37,99,168,0.6); box-shadow:0 4px 24px rgba(37,99,168,0.2); }
+.unit-header.u-teal:hover { box-shadow:0 8px 40px rgba(15,113,115,0.35); }
+.unit-header.u-blue:hover { box-shadow:0 8px 40px rgba(37,99,168,0.35); }
+.unit-tag { font-size:9px; letter-spacing:2.5px; text-transform:uppercase; margin-bottom:6px; opacity:0.7; }
+.unit-name { font-size:15px; font-weight:700; color:#fff; line-height:1.3; }
+.unit-en { font-size:10px; color:rgba(255,255,255,0.4); margin-top:4px; letter-spacing:1px; }
+.unit-count { display:inline-flex; align-items:center; gap:5px; margin-top:8px; background:rgba(255,255,255,0.08); border-radius:100px; padding:3px 10px; font-size:11px; color:rgba(255,255,255,0.6); }
+
+/* Role cards */
+.roles-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.role-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius:12px;
+  padding: 14px 14px;
+  cursor:pointer;
+  transition: all .25s cubic-bezier(.34,1.56,.64,1);
+  position:relative;
+  overflow:hidden;
+}
+.role-card::before {
+  content:'';
+  position:absolute; top:0; right:0; left:0; height:2px;
+  background: var(--accent-color, var(--teal));
+  opacity:0.6;
+  transition: opacity .25s, height .25s;
+}
+.role-card:hover { transform:translateY(-3px); background:var(--surface2); border-color:rgba(255,255,255,0.15); }
+.role-card:hover::before { height:3px; opacity:1; }
+.role-card.active { border-color:rgba(255,255,255,0.3); background:var(--surface2); box-shadow:0 8px 32px rgba(0,0,0,0.4); }
+.role-card.active::before { height:3px; opacity:1; }
+.role-card.vacant {
+  background: rgba(15,10,5,0.7);
+  border-color: rgba(212,88,10,0.3);
+  border-style: dashed;
+}
+.role-card.vacant::before { background:var(--orange); }
+.vacant-badge {
+  display:inline-flex; align-items:center; gap:4px;
+  background:rgba(212,88,10,0.15); border:1px solid rgba(212,88,10,0.3);
+  border-radius:100px; padding:2px 8px;
+  font-size:10px; color:var(--orange-light);
+  margin-bottom:6px;
+}
+.role-unit-tag {
+  font-size:9px; letter-spacing:1.5px; text-transform:uppercase;
+  color:var(--text-faint); margin-bottom:5px;
+}
+.role-name { font-size:14px; font-weight:700; color:var(--text); line-height:1.3; margin-bottom:4px; }
+.role-person { font-size:12px; color:var(--text-dim); }
+.role-person.no-person { color:var(--orange-light); font-style:italic; }
+.role-arrow {
+  position:absolute; bottom:10px; left:12px;
+  font-size:11px; color:var(--text-faint);
+  transition: color .2s, transform .2s;
+}
+.role-card:hover .role-arrow { color:var(--text-dim); transform:translateX(-3px); }
+.role-card.active .role-arrow { color:var(--teal-light); }
+
+/* Strategic support section */
+.strategic-section {
+  margin-top: 40px;
+  border-top: 1px solid rgba(37,99,168,0.2);
+  padding-top: 32px;
+}
+.strategic-label {
+  text-align:center; margin-bottom:20px;
+  display:flex; align-items:center; gap:16px; justify-content:center;
+}
+.strategic-label::before, .strategic-label::after {
+  content:''; flex:1; height:1px;
+  background:linear-gradient(90deg, transparent, rgba(37,99,168,0.4));
+}
+.strategic-label::after { background:linear-gradient(90deg, rgba(37,99,168,0.4), transparent); }
+.strategic-label span {
+  font-size:11px; letter-spacing:3px; text-transform:uppercase;
+  color: var(--blue); white-space:nowrap; padding:0 8px;
+}
+.strategic-grid {
+  display:grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap:10px;
+}
+
+/* ── DETAIL PANEL ──────────────────────────────── */
+.detail-overlay {
+  position:fixed; inset:0; z-index:100;
+  background:rgba(6,15,28,0.7);
+  backdrop-filter:blur(4px);
+  display:none; align-items:center; justify-content:center;
+  padding:24px;
+  animation: fadeIn .2s ease;
+}
+.detail-overlay.open { display:flex; }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+.detail-panel {
+  background: var(--surface);
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius:24px;
+  width:100%; max-width:680px;
+  max-height:85vh;
+  overflow:hidden;
+  display:flex; flex-direction:column;
+  box-shadow: 0 32px 80px rgba(0,0,0,0.7);
+  animation: slideUp .3s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes slideUp { from{transform:translateY(30px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+.panel-header {
+  padding: 28px 28px 20px;
+  border-bottom: 1px solid var(--border);
+  position:relative;
+  flex-shrink:0;
+}
+.panel-header::before {
+  content:'';
+  position:absolute; top:0; left:0; right:0; height:3px;
+  background:var(--panel-accent, var(--teal));
+  border-radius:24px 24px 0 0;
+}
+.panel-close {
+  position:absolute; top:20px; left:24px;
+  background:var(--surface2); border:1px solid var(--border);
+  color:var(--text-dim); width:36px; height:36px;
+  border-radius:50%; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  font-size:18px; line-height:1;
+  transition:all .2s;
+}
+.panel-close:hover { background:rgba(255,255,255,0.1); color:var(--text); transform:rotate(90deg); }
+.panel-badge {
+  display:inline-flex; align-items:center; gap:6px;
+  border-radius:100px; padding:4px 12px;
+  font-size:11px; font-weight:600; letter-spacing:1px;
+  text-transform:uppercase; margin-bottom:10px;
+}
+.panel-name { font-size:26px; font-weight:900; color:#fff; margin-bottom:4px; }
+.panel-title { font-size:14px; color:var(--text-dim); line-height:1.5; }
+.panel-body {
+  padding:0 28px 28px;
+  overflow-y:auto;
+  flex:1;
+}
+.panel-body::-webkit-scrollbar { width:4px; }
+.panel-body::-webkit-scrollbar-track { background:transparent; }
+.panel-body::-webkit-scrollbar-thumb { background:rgba(255,255,255,0.1); border-radius:4px; }
+
+.panel-section { margin-top:24px; }
+.panel-section-title {
+  font-size:11px; letter-spacing:2px; text-transform:uppercase;
+  color:var(--text-faint); margin-bottom:14px;
+  display:flex; align-items:center; gap:10px;
+}
+.panel-section-title::after { content:''; flex:1; height:1px; background:var(--border); }
+
+.objective-box {
+  background:var(--surface2);
+  border-right:3px solid var(--gold);
+  border-radius:0 12px 12px 0;
+  padding:14px 18px;
+  font-size:14px; color:var(--text); line-height:1.7;
+}
+
+.task-list { display:flex; flex-direction:column; gap:8px; }
+.task-item {
+  display:flex; gap:12px; align-items:flex-start;
+  background:rgba(255,255,255,0.03);
+  border:1px solid var(--border);
+  border-radius:10px; padding:11px 14px;
+  font-size:13px; color:var(--text-dim); line-height:1.6;
+  transition:background .2s;
+}
+.task-item:hover { background:rgba(255,255,255,0.05); color:var(--text); }
+.task-num {
+  width:22px; height:22px; border-radius:6px;
+  display:flex; align-items:center; justify-content:center;
+  font-size:11px; font-weight:700; flex-shrink:0;
+  margin-top:1px;
+}
+.task-text strong { color:var(--text); font-weight:600; }
+
+.kpi-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.kpi-item {
+  background:rgba(15,113,115,0.08);
+  border:1px solid rgba(15,113,115,0.2);
+  border-radius:10px; padding:11px 14px;
+  font-size:12px; color:var(--text-dim); line-height:1.5;
+  position:relative;
+}
+.kpi-item::before {
+  content:'◆'; position:absolute; top:11px; right:14px;
+  font-size:8px; color:var(--teal-light); opacity:0.6;
+}
+.kpi-item.kpi-blue { background:rgba(37,99,168,0.08); border-color:rgba(37,99,168,0.2); }
+.kpi-item.kpi-blue::before { color:#6baee8; }
+.kpi-item.kpi-orange { background:rgba(212,88,10,0.08); border-color:rgba(212,88,10,0.2); }
+.kpi-item.kpi-orange::before { color:var(--orange-light); }
+
+.vacant-notice {
+  background:rgba(212,88,10,0.08);
+  border:1px dashed rgba(212,88,10,0.4);
+  border-radius:12px; padding:16px 18px; margin-top:20px;
+  display:flex; gap:12px; align-items:flex-start;
+}
+.vacant-notice .icon { font-size:20px; flex-shrink:0; }
+.vacant-notice .msg { font-size:13px; color:rgba(240,112,48,0.9); line-height:1.6; }
+.vacant-notice .msg strong { color:var(--orange-light); }
+
+/* ── PULSE ANIMATION for vacant ────────────────── */
+@keyframes pulse {
+  0%,100%{opacity:1} 50%{opacity:0.5}
+}
+.pulse { animation:pulse 2s ease-in-out infinite; }
+
+/* ── RESPONSIVE ────────────────────────────────── */
+@media(max-width:900px){
+  .header { padding:20px 24px; flex-direction:column; align-items:flex-start; }
+  .controls { padding:12px 24px; }
+  .chart-wrap { padding:24px 16px 60px; }
+  .units-row, .roles-grid, .strategic-grid { grid-template-columns:repeat(2,1fr); }
+  .kpi-grid { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ────────────────────────────────── -->
+<header class="header">
+  <div class="header-right">
+    <div class="synergy-badge">Synergy Training & Consulting • synergy-tc.com</div>
+    <h1>الهيكل التنظيمي <span>المقترح</span></h1>
+    <div class="header-sub">
+      فريق من الناس إلى الناس  |  Nas2Nas  |  قطاع غزة، فلسطين<br>
+      إعداد: شركة سينرجي للتدريب والاستشارات  —  مارس 2026
+    </div>
+    <div class="stats-row">
+      <div class="stat-pill">
+        <div class="dot" style="background:#c8963e"></div>
+        <span class="label">قيادة</span>
+        <span class="val" style="color:#c8963e">1</span>
+      </div>
+      <div class="stat-pill">
+        <div class="dot" style="background:#0f7173"></div>
+        <span class="label">وحدات تشغيلية</span>
+        <span class="val" style="color:#14a5a8">4</span>
+      </div>
+      <div class="stat-pill">
+        <div class="dot" style="background:#2563a8"></div>
+        <span class="label">دعم استراتيجي</span>
+        <span class="val" style="color:#6baee8">4</span>
+      </div>
+      <div class="stat-pill">
+        <div class="dot" style="background:#1a7c41"></div>
+        <span class="label">مشغول</span>
+        <span class="val" style="color:#3ed87a">11</span>
+      </div>
+      <div class="stat-pill">
+        <div class="dot" style="background:#d4580a" style="animation:pulse 2s infinite"></div>
+        <span class="label">شاغر</span>
+        <span class="val" style="color:#f07030">6</span>
+      </div>
+    </div>
+  </div>
+  <div class="header-left">
+    <div style="font-size:13px;color:var(--text-dim);line-height:1.7;">
+      🖱 اضغط على أي بطاقة لعرض التفاصيل الكاملة<br>
+      📋 المهام الوظيفية ومؤشرات الأداء (KPIs)<br>
+      🔴 البطاقات المنقطة = مناصب شاغرة
+    </div>
+  </div>
+</header>
+
+<!-- ── LEGEND ─────────────────────────────────── -->
+<div class="controls">
+  <div class="legend">
+    <div class="leg-item"><div class="leg-dot" style="background:#c8963e"></div>قيادة الفريق</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#0f7173"></div>وحدات تشغيلية</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#2563a8"></div>دعم استراتيجي</div>
+    <div class="leg-item"><div class="leg-dot" style="background:#d4580a;opacity:0.8"></div>منصب شاغر</div>
+  </div>
+  <div class="filter-hint">اضغط أي بطاقة لعرض التفاصيل <kbd>ESC</kbd> للإغلاق</div>
+</div>
+
+<!-- ── CHART ──────────────────────────────────── -->
+<div class="chart-wrap">
+<div class="chart">
+
+  <!-- SVG connectors (drawn by JS) -->
+  <svg class="connectors" id="connectors"></svg>
+
+  <!-- LEVEL 0: Leader -->
+  <div class="level" style="margin-bottom:32px;">
+    <div class="node-leader">
+      <div class="leader-card" onclick="openPanel('leader')">
+        <div class="leader-title">قائد الفريق  |  Team Leader</div>
+        <div class="leader-name">أ. مهند ماهر جندية</div>
+        <div class="leader-sub">المسؤول العام والمرجعية الاستراتيجية للفريق</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEVEL 1: 4 Operational Unit Headers -->
+  <div class="units-row">
+    <div class="unit-header u-teal" onclick="openPanel('unit-projects')">
+      <div class="unit-tag" style="color:#14a5a8;">Programs</div>
+      <div class="unit-name">وحدة المشاريع</div>
+      <div class="unit-en">The Field</div>
+      <div class="unit-count">5 أدوار <span style="color:#f07030">• 3 شاغر</span></div>
+    </div>
+    <div class="unit-header u-teal" onclick="openPanel('unit-ops')">
+      <div class="unit-tag" style="color:#14a5a8;">Operations</div>
+      <div class="unit-name">وحدة العمليات التشغيلية</div>
+      <div class="unit-en">The Engine</div>
+      <div class="unit-count">4 أدوار <span style="color:#f07030">• 1 شاغر</span></div>
+    </div>
+    <div class="unit-header u-teal" onclick="openPanel('unit-growth')">
+      <div class="unit-tag" style="color:#14a5a8;">Growth</div>
+      <div class="unit-name">وحدة العلاقات الخارجية</div>
+      <div class="unit-en">The Future</div>
+      <div class="unit-count">2 أدوار <span style="color:#f07030">• 1 شاغر</span></div>
+    </div>
+    <div class="unit-header u-teal" onclick="openPanel('unit-media')">
+      <div class="unit-tag" style="color:#14a5a8;">Communication</div>
+      <div class="unit-name">وحدة المحتوى الإعلامي</div>
+      <div class="unit-en">The Voice</div>
+      <div class="unit-count">3 أدوار</div>
+    </div>
+  </div>
+
+  <!-- LEVEL 2: Individual Roles -->
+  <div class="roles-grid">
+
+    <!-- Projects Column -->
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="role-card vacant" onclick="openPanel('relief-coord')" style="--accent-color:#d4580a">
+        <div class="vacant-badge"><span class="pulse">●</span> شاغر</div>
+        <div class="role-unit-tag">وحدة المشاريع</div>
+        <div class="role-name">منسق المشاريع الإغاثية</div>
+        <div class="role-person no-person">Relief Projects Coordinator</div>
+        <div class="role-arrow">← التفاصيل</div>
+      </div>
+      <div class="role-card vacant" onclick="openPanel('dev-coord')" style="--accent-color:#d4580a">
+        <div class="vacant-badge"><span class="pulse">●</span> شاغر</div>
+        <div class="role-unit-tag">وحدة المشاريع</div>
+        <div class="role-name">منسق المشاريع التنموية</div>
+        <div class="role-person no-person">Developmental Projects Coordinator</div>
+        <div class="role-arrow">← التفاصيل</div>
+      </div>
+      <div class="role-card vacant" onclick="openPanel('social-worker')" style="--accent-color:#d4580a">
+        <div class="vacant-badge"><span class="pulse">●</span> شاغر</div>
+        <div class="role-unit-tag">وحدة المشاريع</div>
+        <div class="role-name">الباحث الاجتماعي</div>
+        <div class="role-person no-person">Social Worker / Field Researcher</div>
+        <div class="role-arrow">← التفاصيل</div>
+      </div>
+      <div class="role-card" onclick="openPanel('mahmoud')" style="--accent-color:#0f7173">
+        <div class="role-unit-tag">وحدة المشاريع</div>
+        <div class="role-name">مدير مجتمع آيلاند هيفين</div>
+        <div class="role-person">محمود إبراهيم الدوس</div>
+        <div class="role-arrow">← التفاصيل</div>
+      </div>
+      <div class="role-card" onclick="openPanel('ruaa')" style="--accent-color:#0f7173">
+        <div class="role-unit-tag">وحدة المشاريع</div>
+        <div class="role-name">منسقة مجتمع آيلاند هيفين</div>
+        <div class="role-person">رؤى محمد أبو عبادي</div>
+        <div class="role-arrow">← التفاصيل</div>
+      </div>
+    </div>
+
+    <!-- Operations Column -->
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="role-card" onclick="openPanel('mustafa')" style="--accent-color:#0f7173">
+        <div class="role-unit-tag">مدير الوحدة</div>
+        <div class="role-name">مدير العمليات الميدانية</div>
+        <div class="role-person">مصطفى إبراهيم الدوس</div>
+        <div class="role-arrow">← التفاصيل</div>
+      </div>
+      <div class="role-card" onclick="openPanel('rushdi')" style="--accent-color:#0f7173">
+        <div class="role-unit-tag">وحدة العمليات</div>
+        <div class="role-name">مسؤول المشتريات</div>
+        <div class="role-person">رشدي أسعد الهيقي</div>
+        <div class="role-arrow">← التفاصيل</div>
+      </div>
+      <div class="role-card vacant" onclick="openPanel('logistics')" style="--accent-color:#d4580a">
+        <div class="vacant-badge"><span class="pulse">●</span> شاغر</div>
+        <div class="role-unit-tag">وحدة العمليات</div>
+        <div class="role-name">منسق اللوجستيات</div>
+        <div class="role-person no-person">Logistics Coordinator</div>
+        <div class="role-arrow">← التفاصيل</div>
+      </div>
+      <div class="role-card" onclick="openPanel('imad')" style="--accent-color:#0f7173">
+        <div class="role-unit-tag">وحدة العمليات</div>
+        <div class="role-name">موظف الخدمات</div>
+        <div class="role-person">عماد الدين أكرم عفانه</div>
+        <div class="role-arrow">← التفاصيل</div>
+      </div>
+    </div>
+
+    <!-- Growth Column -->
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="role-card" onclick="openPanel('ramal')" style="--accent-color:#0f7173">
+        <div class="role-unit-tag">وحدة العلاقات الخارجية</div>
+        <div class="role-name">مسؤولة علاقات المانحين</div>
+        <div class="role-person">رمال عادل المجدلاوي</div>
+        <div class="role-arrow">← التفاصيل</div>
+      </div>
+      <div class="role-card vacant" onclick="openPanel('donor-int')" style="--accent-color:#d4580a">
+        <div class="vacant-badge"><span class="pulse">●</span> شاغر</div>
+        <div class="role-unit-tag">وحدة العلاقات الخارجية</div>
+        <div class="role-name">مسؤول العلاقات الدولية</div>
+        <div class="role-person no-person">Donor Relations Officer</div>
+        <div class="role-arrow">← التفاصيل</div>
+      </div>
+    </div>
+
+    <!-- Media Column -->
+    <div style="display:flex;flex-direction:column;gap:9px;">
+      <div class="role-card" onclick="openPanel('yousef')" style="--accent-color:#0f7173">
+        <div class="role-unit-tag">وحدة المحتوى</div>
+        <div class="role-name">مدير المحتوى الرقمي</div>
+        <div class="role-person">يوسف أيمن حلس</div>
+        <div class="role-arrow">← التفاصيل</div>
+      </div>
+      <div class="role-card" onclick="openPanel('sally')" style="--accent-color:#0f7173">
+        <div class="role-unit-tag">وحدة المحتوى</div>
+        <div class="role-name">رئيسة القسم الإبداعي</div>
+        <div class="role-person">سالي نزار نصار</div>
+        <div class="role-arrow">← التفاصيل</div>
+      </div>
+      <div class="role-card" onclick="openPanel('insaf')" style="--accent-color:#0f7173">
+        <div class="role-unit-tag">وحدة المحتوى</div>
+        <div class="role-name">أخصائية السرد القصصي</div>
+        <div class="role-person">إنصاف علاء حبيب</div>
+        <div class="role-arrow">← التفاصيل</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Strategic Support -->
+  <div class="strategic-section">
+    <div class="strategic-label">
+      <span>وحدات الدعم الاستراتيجي  •  ترتبط مباشرة بقائد الفريق</span>
+    </div>
+    <div class="strategic-grid">
+      <div class="role-card" onclick="openPanel('wasim')" style="--accent-color:#2563a8">
+        <div class="role-unit-tag" style="color:#6baee8">دعم استراتيجي</div>
+        <div class="role-name">الإدارة المالية</div>
+        <div class="role-person">وسيم توفيق الدردساوي</div>
+        <div class="role-arrow">← التفاصيل</div>
+      </div>
+      <div class="role-card" onclick="openPanel('ahmed')" style="--accent-color:#2563a8">
+        <div class="role-unit-tag" style="color:#6baee8">دعم استراتيجي</div>
+        <div class="role-name">مدير الجودة الإدارية</div>
+        <div class="role-person">أحمد بهجت بدير</div>
+        <div class="role-arrow">← التفاصيل</div>
+      </div>
+      <div class="role-card vacant" onclick="openPanel('meal')" style="--accent-color:#d4580a">
+        <div class="vacant-badge"><span class="pulse">●</span> شاغر</div>
+        <div class="role-unit-tag" style="color:#f07030">دعم استراتيجي</div>
+        <div class="role-name">المتابعة والتقييم</div>
+        <div class="role-person no-person">MEAL Officer</div>
+        <div class="role-arrow">← التفاصيل</div>
+      </div>
+      <div class="role-card vacant" onclick="openPanel('secretary')" style="--accent-color:#d4580a">
+        <div class="vacant-badge"><span class="pulse">●</span> شاغر</div>
+        <div class="role-unit-tag" style="color:#f07030">دعم استراتيجي</div>
+        <div class="role-name">السكرتارية التنفيذية</div>
+        <div class="role-person no-person">Executive Secretary</div>
+        <div class="role-arrow">← التفاصيل</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /chart -->
+</div><!-- /chart-wrap -->
+
+<!-- ── DETAIL PANEL OVERLAY ───────────────────── -->
+<div class="detail-overlay" id="overlay" onclick="closeOnOverlay(event)">
+  <div class="detail-panel" id="panel">
+    <div class="panel-header" id="panel-header">
+      <button class="panel-close" onclick="closePanel()">✕</button>
+      <div class="panel-badge" id="panel-badge"></div>
+      <div class="panel-name" id="panel-name"></div>
+      <div class="panel-title" id="panel-title"></div>
+    </div>
+    <div class="panel-body" id="panel-body"></div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════
+const DATA = {
+
+leader: {
+  name: "أ. مهند ماهر جندية",
+  title: "قائد الفريق  |  Team Leader",
+  badge: "⭐ القيادة العليا", badgeColor:"#c8963e", badgeBg:"rgba(200,150,62,0.12)",
+  accentColor: "#c8963e",
+  objective: "الإشراف الاستراتيجي الكامل على الفريق وضمان توافق جميع الوحدات نحو تحقيق رسالة الفريق الإنسانية بكفاءة وشفافية.",
+  tasks:[
+    "وضع الرؤية الاستراتيجية: تحديد التوجه العام للفريق وأهدافه السنوية بالتشاور مع الوحدات.",
+    "اتخاذ القرارات الكبرى: البت في الشراكات الجديدة والمشاريع الكبرى ومذكرات التفاهم.",
+    "تمثيل الفريق خارجياً: التواصل مع الجهات المانحة والشركاء المؤسسيين والجهات الرسمية.",
+    "الإشراف على وحدات الدعم الاستراتيجي: الإدارة المالية والجودة والمتابعة والتقييم والسكرتارية.",
+    "ضمان انسجام الوحدات: متابعة تكامل عمل الوحدات الأربع التشغيلية مع بعضها.",
+  ],
+  kpis:["نسبة إنجاز الأهداف السنوية وفق الخطة الاستراتيجية.",
+        "عدد الشراكات المؤسسية المنجزة سنوياً.",
+        "مستوى رضا المانحين وتقييماتهم الدورية للفريق.",
+        "سرعة اتخاذ القرارات الاستراتيجية ومعالجة التحديات.",]
+},
+
+'unit-projects': {
+  name: "وحدة المشاريع", title: "Programs – The Field",
+  badge:"📦 وحدة تشغيلية", badgeColor:"#14a5a8", badgeBg:"rgba(15,113,115,0.12)",
+  accentColor:"#0f7173",
+  objective:"التخطيط والتنفيذ الميداني للمشاريع الإغاثية والتنموية، وضمان وصول الخدمات لأصحابها بكفاءة واحترافية وفق أعلى المعايير الإنسانية.",
+  tasks:[
+    "تصميم مشاريع الإغاثة العاجلة: الخيام، الوجبات الساخنة، كسوة المواليد، وغيرها.",
+    "تنفيذ البرامج التنموية المستدامة: مشروع آيلاند هيفين وبرامج تمكين الشباب.",
+    "إدارة قواعد بيانات المستفيدين وضمان دقة الاستهداف.",
+    "التنسيق مع مراكز الإيواء واللجان المحلية.",
+    "إعداد مقترحات المشاريع وكتابة التقارير الختامية.",
+  ],
+  kpis:["نسبة تنفيذ الأنشطة وفق الجدول الزمني (المستهدف 100%).",
+        "دقة بيانات المستفيدين وخلوها من التكرار.",
+        "معدل رضا المستفيدين عن الخدمات المقدمة.",
+        "عدد مقترحات المشاريع التي حصلت على تمويل."],
+  isUnit:true
+},
+
+'unit-ops': {
+  name:"وحدة العمليات التشغيلية", title:"Operations – The Engine",
+  badge:"⚙️ وحدة تشغيلية", badgeColor:"#14a5a8", badgeBg:"rgba(15,113,115,0.12)",
+  accentColor:"#0f7173",
+  objective:"تأمين سلسلة الإمداد الكاملة من الشراء حتى التسليم الميداني، والحفاظ على جاهزية أصول المؤسسة واستمرارية العمليات.",
+  tasks:[
+    "إدارة عمليات الشراء والتعاقد مع الموردين وفق أفضل الأسعار.",
+    "الإشراف على النقل والتوزيع وإدارة المخازن.",
+    "ضمان جاهزية المرافق والمعدات والصيانة الدورية.",
+    "توفير الدعم اللوجستي الميداني للمشاريع.",
+    "تنسيق حركة السيارات والوقود والموارد التشغيلية.",
+  ],
+  kpis:["سرعة الاستجابة لطلبات الشراء والتوريد.",
+        "نسبة توفير التكاليف مقارنة بأسعار السوق.",
+        "دقة سجلات المخازن (انعدام الفاقد).",
+        "جاهزية المرافق والمعدات التشغيلية."],
+  isUnit:true
+},
+
+'unit-growth': {
+  name:"وحدة العلاقات الخارجية والشراكات", title:"Growth – The Future",
+  badge:"🌐 وحدة تشغيلية", badgeColor:"#14a5a8", badgeBg:"rgba(15,113,115,0.12)",
+  accentColor:"#0f7173",
+  objective:"بناء شبكة علاقات متينة مع المانحين المحليين والدوليين والشركاء المؤسسيين لضمان استدامة التمويل وتوسع أثر الفريق.",
+  tasks:[
+    "إدارة علاقات المانحين المحليين والدوليين.",
+    "قيادة الحملات الرقمية لجمع التبرعات عبر المنصات المتعددة.",
+    "استقطاب شراكات مؤسسية دولية من المنظمات الإنسانية.",
+    "إعداد تقارير الأثر للمانحين وتعزيز الشفافية.",
+    "بناء قاعدة بيانات المتبرعين وتحليل سلوكيات التبرع.",
+  ],
+  kpis:["حجم التبرعات الرقمية المحققة شهرياً.",
+        "معدل استبقاء المتبرعين (Donor Retention Rate).",
+        "عدد الشراكات المؤسسية الدولية الجديدة.",
+        "أداء حملات البريد الإلكتروني (Open & Click Rates)."],
+  isUnit:true
+},
+
+'unit-media': {
+  name:"وحدة المحتوى الإعلامي", title:"Communication – The Voice",
+  badge:"📣 وحدة تشغيلية", badgeColor:"#14a5a8", badgeBg:"rgba(15,113,115,0.12)",
+  accentColor:"#0f7173",
+  objective:"تحويل العمل الميداني إلى محتوى رقمي مؤثر يبني الثقة مع المانحين ويوسّع الحضور الرقمي للفريق ويحرك قرارات التبرع.",
+  tasks:[
+    "وضع استراتيجية المحتوى وتقويم النشر الشهري.",
+    "إنتاج المحتوى البصري والمكتوب والمرئي.",
+    "إدارة المنصات الرقمية (فيسبوك، إنستغرام، الموقع).",
+    "قياس أداء المحتوى وتحليل مؤشرات التفاعل.",
+    "توحيد الهوية البصرية والخطاب المؤسسي.",
+  ],
+  kpis:["معدل الوصول العضوي (Organic Reach) شهرياً.",
+        "نسبة الالتزام بتقويم النشر.",
+        "مؤشر مطابقة الهوية البصرية (Brand Compliance).",
+        "معدل التحويل للتبرع من المحتوى (Conversion Rate)."],
+  isUnit:true
+},
+
+// ── Individual Roles ─────────────────────────
+'relief-coord': {
+  name:"منصب شاغر", title:"منسق المشاريع الإغاثية  |  Relief Projects Coordinator",
+  badge:"🔴 منصب شاغر", badgeColor:"#f07030", badgeBg:"rgba(212,88,10,0.1)",
+  accentColor:"#d4580a", isVacant:true,
+  objective:"تصميم وقيادة التدخلات الإنسانية العاجلة (الإيواء، الكسوة، الوجبات الساخنة) لضمان استجابة سريعة تحفظ كرامة النازحين وتلبي احتياجاتهم الطارئة.",
+  tasks:["إعداد مقترحات الأنشطة الطارئة وتحديد الميزانيات لجذب التمويل.",
+         "وضع الخطط التنفيذية والجداول الزمنية لضمان سرعة الوصول للميدان.",
+         "الإشراف الميداني على جودة تقديم الخدمات وفق المعايير الإنسانية.",
+         "التنسيق مع مراكز الإيواء واللجان المحلية لتسهيل التوزيع.",
+         "إعداد التقارير الختامية وتوثيق الأرقام والنتائج.",
+         "التنسيق مع المحتوى الإعلامي والمحاسب لضمان مطابقة المصروفات.",],
+  kpis:["نسبة إنجاز الأنشطة وفق الجدول (المستهدف: 100%).",
+        "معدل الوصول للمستفيدين المستحقين (0% تجاوزات).",
+        "جودة وموثوقية التقارير الختامية.",
+        "سرعة الاستجابة من اعتماد التمويل حتى بدء التنفيذ."]
+},
+
+'dev-coord': {
+  name:"منصب شاغر", title:"منسق المشاريع التنموية  |  Developmental Projects Coordinator",
+  badge:"🔴 منصب شاغر", badgeColor:"#f07030", badgeBg:"rgba(212,88,10,0.1)",
+  accentColor:"#d4580a", isVacant:true,
+  objective:"تصميم وإدارة البرامج التنموية المستدامة التي تمكّن الفئات المستهدفة وتحقق أثراً إنسانياً بعيد المدى يتجاوز الاستجابة الطارئة.",
+  tasks:["تحديد وتصميم المبادرات التنموية (التمكين الاقتصادي، التعليمي) وإدارة دورة حياتها.",
+         "صياغة مقترحات المشاريع والميزانيات لجذب التمويل الدولي والمحلي.",
+         "إدارة دورة حياة المشروع وفق معايير PMD Pro الدولية.",
+         "بناء شراكات مع المؤسسات الداعمة لتوسيع أثر البرامج.",
+         "الإشراف على جمع البيانات لقياس الاحتياجات التنموية الفعلية.",
+         "إعداد تقارير الأثر للمانحين بأسلوب مؤسسي مقنع.",],
+  kpis:["عدد ونسبة المقترحات التي حصلت على تمويل مؤسساتي.",
+        "الالتزام بـ Milestones وفق الجدول والميزانية المعتمدة.",
+        "نسبة المشاريع ذات الأثر المستدام بعد انتهاء التمويل.",
+        "تقييم المانحين لدقة وشفافية التقارير المرفوعة."]
+},
+
+'social-worker': {
+  name:"منصب شاغر", title:"الباحث الاجتماعي  |  Social Worker / Field Researcher",
+  badge:"🔴 منصب شاغر", badgeColor:"#f07030", badgeBg:"rgba(212,88,10,0.1)",
+  accentColor:"#d4580a", isVacant:true,
+  objective:"توفير قاعدة بيانات اجتماعية دقيقة تُبنى عليها التدخلات الإغاثية والتنموية، وضمان وصول المساعدات لمستحقيها بكرامة واحترام.",
+  tasks:["الزيارات الميدانية لتقييم الاحتياجات وتحديد الفئات الأكثر هشاشة.",
+         "جمع وتوثيق بيانات المستفيدين رقمياً بدقة وخلو من التكرار.",
+         "بناء علاقات عمل مع مراكز الإيواء واللجان المحلية.",
+         "Dignified Storytelling: توفير قصص إنسانية واقعية مع حماية خصوصية المستفيدين.",
+         "تقديم توصيات فنية ميدانية لتصميم التدخلات.",
+         "استقبال شكاوى المستفيدين ورفعها لوحدة MEAL.",],
+  kpis:["دقة البيانات المدخلة (المستهدف: 100%).",
+        "نسبة الوصول للفئات الأشد احتياجاً بمعايير الاستحقاق.",
+        "مؤشر كرامة المستفيد عبر استطلاعات الرأي.",
+        "عدد قصص الأثر النوعية المرفوعة لوحدة المحتوى."]
+},
+
+mahmoud: {
+  name:"محمود إبراهيم الدوس", title:"مدير مشروع مجتمع آيلاند هيفين  |  Island Haven Community Manager",
+  badge:"🏗️ وحدة المشاريع", badgeColor:"#14a5a8", badgeBg:"rgba(15,113,115,0.12)",
+  accentColor:"#0f7173",
+  objective:"قيادة وتطوير مجتمع آيلاند هيفين لتحويله إلى بيئة نمو مستدامة تدعم الكفاءات الشابة وتجذب الممولين وتُنتج تأثيراً تنموياً حقيقياً.",
+  tasks:["ابتكار خطط تدريبية شاملة لمنتسبي آيلاند هيفين لسد الفجوات المهارية.",
+         "الإشراف على تنفيذ الأنشطة اليومية والموسمية وفق الجدول التشغيلي.",
+         "بناء شراكات مع المؤسسات الداعمة لتأمين الموارد اللازمة للمساحة.",
+         "استقطاب متبرعين وشركاء جدد من قطاع التنمية والتمكين.",
+         "تقديم الرؤية التقنية لأتمتة العمليات بناءً على خلفيته البرمجية.",],
+  kpis:["نسبة تنفيذ البرامج التدريبية مقارنة بالخطة السنوية.",
+        "نمو عدد المنتسبين الفاعلين ودرجة تفاعلهم.",
+        "عدد مذكرات التفاهم والتعاونات الجديدة.",
+        "رضا المنتسبين عن جودة البرامج التدريبية."]
+},
+
+ruaa: {
+  name:"رؤى محمد أبو عبادي", title:"منسقة مجتمع آيلاند هيفين ومساعدة إدارية",
+  badge:"🏗️ وحدة المشاريع", badgeColor:"#14a5a8", badgeBg:"rgba(15,113,115,0.12)",
+  accentColor:"#0f7173",
+  objective:"ضمان تنفيذ أنشطة المساحة وفق المعايير المطلوبة وتعزيز رابطة المجتمع الداخلي لمنتسبي آيلاند هيفين.",
+  tasks:["تنظيم الجداول الأسبوعية وضمان جاهزية المكان لورش العمل والفعاليات.",
+         "إدارة التواصل اليومي مع المنتسبين لتعزيز الولاء والانتماء.",
+         "متابعة سجلات الحضور والالتزامات المالية ورفع تقارير دورية.",
+         "رصد التحديات الميدانية وتقديم توصيات عملية فورية."],
+  kpis:["انعدام التضارب في المواعيد أو التأخير في تجهيز الأنشطة.",
+        "معدل رضا المنتسبين عن الخدمات والدعم المقدم.",
+        "دقة واكتمال سجلات الحضور والبيانات.",
+        "سرعة وفاعلية حل المشكلات الميدانية المرصودة."]
+},
+
+mustafa: {
+  name:"مصطفى إبراهيم الدوس", title:"مدير العمليات الميدانية  |  Field Operations Manager",
+  badge:"⚙️ رأس الوحدة", badgeColor:"#14a5a8", badgeBg:"rgba(15,113,115,0.12)",
+  accentColor:"#0f7173",
+  objective:"القيادة الفعالة للتنفيذ الميداني وتحويل الخطط إلى واقع ملموس يحفظ كرامة المستفيدين، مع الإشراف المباشر على جميع عمليات الوحدة.",
+  tasks:["إعداد الخطط التنفيذية للأنشطة بناءً على الميزانيات المعتمدة.",
+         "توجيه وإدارة فرق المتطوعين والباحثين الاجتماعيين ميدانياً.",
+         "متابعة سير العمل لضمان تقديم الخدمات وفق المعايير الإنسانية.",
+         "الإشراف على دقة قواعد بيانات المستفيدين ومراكز الإيواء.",
+         "توثيق التقارير النهائية لكل مشروع وتسليمها للإدارة.",
+         "الإشراف المباشر على مسؤول المشتريات ومنسق اللوجستيات وموظف الخدمات.",],
+  kpis:["الالتزام بتنفيذ الأنشطة وفق الجدول الزمني.",
+        "دقة بيانات المستفيدين وخلوها من التكرار.",
+        "عدد المستفيدين الفعليين مقارنة بالمستهدف.",
+        "تقييم الإدارة والمانحين للتقارير الختامية."]
+},
+
+rushdi: {
+  name:"رشدي أسعد الهيقي", title:"مسؤول المشتريات  |  Procurement Officer",
+  badge:"⚙️ وحدة العمليات", badgeColor:"#14a5a8", badgeBg:"rgba(15,113,115,0.12)",
+  accentColor:"#0f7173",
+  objective:"تحقيق أفضل قيمة مقابل السعر وضمان نزاهة وشفافية التعاقدات مع الموردين وفق أعلى معايير الحوكمة المؤسسية.",
+  tasks:["البحث عن موردين جدد وبناء قاعدة بيانات شاملة وتقييمهم دورياً.",
+         "قيادة التفاوض على الأسعار والشروط للحصول على أفضل العروض.",
+         "استدراج عروض الأسعار وتحليلها فنياً ومالياً ورفع توصية التعاقد.",
+         "الأرشفة الرقمية الفورية للفواتير والعقود ووثائق المشتريات.",
+         "التنسيق المالي مع المسؤول المالي لضمان السيولة وجدولة المدفوعات.",
+         "متابعة أسعار السوق المحلية وتحديث قوائم الأسعار التقديرية.",],
+  kpis:["نسبة التوفير المحقق مقارنة بأسعار السوق.",
+        "متوسط وقت التوريد من استلام الطلب حتى الترسية.",
+        "عدد الموردين الجدد المعتمدين دورياً.",
+        "نسبة اكتمال أرشفة وثائق المشتريات رقمياً (100%)."]
+},
+
+logistics: {
+  name:"منصب شاغر", title:"منسق اللوجستيات  |  Logistics Coordinator",
+  badge:"🔴 منصب شاغر", badgeColor:"#f07030", badgeBg:"rgba(212,88,10,0.1)",
+  accentColor:"#d4580a", isVacant:true,
+  objective:"ضمان تدفق المواد والمعدات للميدان بكفاءة والحفاظ على سلامة أصول المؤسسة وضمان الجاهزية التشغيلية الكاملة.",
+  tasks:["تنظيم نقل المواد من الموردين إلى المخازن ومواقع التوزيع الميداني.",
+         "استلام المواد والتأكد من مطابقتها للمواصفات الفنية قبل القبول الرسمي.",
+         "الإشراف على المخازن وضمان التوثيق الدقيق للصادر والوارد.",
+         "الإشراف الدوري على صيانة ممتلكات المؤسسة والمعدات.",
+         "تأمين المواقع الميدانية (نصب الخيام، مطابخ الوجبات) وتذليل العقبات.",
+         "تنسيق حركة السيارات وضمان توفر الوقود للعمليات.",],
+  kpis:["الالتزام بتوصيل الاحتياجات لمواقع التنفيذ في الوقت المحدد.",
+        "نسبة المواد المقبولة فنياً دون ملاحظات أو عيوب.",
+        "دقة سجلات الصادر والوارد (انعدام الفاقد أو التالف).",
+        "سرعة الاستجابة لطلبات صيانة المرافق والمعدات."]
+},
+
+imad: {
+  name:"عماد الدين أكرم عفانه", title:"موظف الخدمات  |  Services Staff",
+  badge:"⚙️ وحدة العمليات", badgeColor:"#14a5a8", badgeBg:"rgba(15,113,115,0.12)",
+  accentColor:"#0f7173",
+  objective:"ضمان الجاهزية اللوجستية والخدمية للمكتب والميدان لدعم سير العمل اليومي بكفاءة وانسيابية.",
+  tasks:["تأمين احتياجات المكتب والميدان من مستلزمات خدمية يومية.",
+         "الإشراف على صيانة مرافق المكتب والأجهزة وحل الأعطال.",
+         "استقبال وتسليم المراسلات والطرود والوثائق الرسمية.",
+         "متابعة سجلات الحضور ورفع التقارير الأسبوعية للإدارة.",
+         "تجهيز قاعات الاجتماعات وتوفير المستلزمات اللازمة.",
+         "تنفيذ المهام الخدمية التكليفية التي تطلبها الإدارة.",],
+  kpis:["متوسط وقت الاستجابة لتلبية الطلبات الخدمية الواردة.",
+        "نسبة الوقت الذي تكون فيه المرافق في حالة سليمة.",
+        "دقة سجلات الحضور المرفوعة أسبوعياً.",
+        "تقييم أعضاء الفريق لمستوى الدعم الخدمي."]
+},
+
+ramal: {
+  name:"رمال عادل المجدلاوي", title:"مسؤولة علاقات المانحين ورعاية المتبرعين  |  Donor Relations & Care Officer",
+  badge:"🌐 وحدة العلاقات الخارجية", badgeColor:"#14a5a8", badgeBg:"rgba(15,113,115,0.12)",
+  accentColor:"#0f7173",
+  objective:"بناء جسور تواصل راسخة مع المانحين المحليين والدوليين وتنمية ولائهم لضمان استدامة التمويل ونمو الفريق مؤسسياً.",
+  tasks:["بناء وتطوير علاقات مع المانحين لضمان استمرارية الدعم المالي.",
+         "الرد الاحترافي على الاستفسارات عبر (فيسبوك، إنستغرام، واتساب، لينكد إن، الموقع).",
+         "إعداد وإدارة وتحليل حملات البريد الإلكتروني والمناشدات الموسمية.",
+         "التحديث الدوري وتصنيف قاعدة بيانات المتبرعين والشركاء.",
+         "برامج شكر ومتابعة دورية لإطلاع المتبرعين على أثر تبرعاتهم.",
+         "تزويد الجمعيات الشريكة بالتقارير والمعلومات حول المشاريع المشتركة.",],
+  kpis:["متوسط الوقت للرد على استفسارات المانحين.",
+        "إجمالي التبرعات المحققة عبر القنوات الرقمية.",
+        "معدلات فتح وتفاعل حملات البريد (Open & Click Rates).",
+        "نسبة تحويل المتبرعين لمرة واحدة إلى داعمين مستمرين.",
+        "نسبة اكتمال وصحة قاعدة بيانات المانحين."]
+},
+
+'donor-int': {
+  name:"منصب شاغر", title:"مسؤول العلاقات الدولية والشراكات  |  Donor Relations Officer",
+  badge:"🔴 منصب شاغر", badgeColor:"#f07030", badgeBg:"rgba(212,88,10,0.1)",
+  accentColor:"#d4580a", isVacant:true,
+  objective:"استقطاب شراكات مؤسسية دولية وفتح مصادر تمويل جديدة من المانحين الدوليين لتوسيع نطاق وأثر مشاريع الفريق.",
+  tasks:["رصد نداءات المانحين الدوليين (UN، الاتحاد الأوروبي) وتقييم توافقها مع الفريق.",
+         "صياغة طلبات التمويل الدولية بالإنجليزية وفق متطلبات المانحين.",
+         "تطوير علاقات مع المنظمات الدولية والمؤسسات الأكاديمية والداعمة.",
+         "تمثيل الفريق في المراسلات والاجتماعات الدولية باللغة الإنجليزية.",
+         "إنتاج تقارير الأثر الإنجليزية الموجهة للمانحين الدوليين.",
+         "تحديث قاعدة بيانات المانحين الدوليين وفرص التمويل المتاحة.",],
+  kpis:["عدد مقترحات التمويل المحضّرة والمقدّمة سنوياً.",
+        "نسبة المقترحات التي حصلت على اعتماد وتمويل.",
+        "إجمالي حجم التمويل الدولي المستقطب.",
+        "عدد مذكرات التفاهم الدولية الموقعة."]
+},
+
+yousef: {
+  name:"يوسف أيمن حلس", title:"مدير المحتوى الرقمي  |  Digital Content Manager",
+  badge:"📣 وحدة المحتوى", badgeColor:"#14a5a8", badgeBg:"rgba(15,113,115,0.12)",
+  accentColor:"#0f7173",
+  objective:"إدارة الحضور الرقمي وحماية الهوية البصرية وتحويل البيانات الميدانية إلى سرد قصصي مؤثر يجذب المانحين ويوحّد الخطاب المؤسسي.",
+  tasks:["رسم خطط المحتوى المتوافقة مع أهداف الفريق والجمهور المستهدف.",
+         "قيادة المصممين والكتاب لضمان جودة المخرجات وتناغم العمل.",
+         "الحفاظ على ثبات الهوية البصرية (Brand Identity) في جميع التصاميم.",
+         "مراجعة واعتماد الفيديوهات والمواد الإعلامية والسكربتات قبل النشر.",
+         "ضمان اتساق الرسائل الإعلامية بين الأقسام الإغاثية والإبداعية.",
+         "دمج التوجهات الحديثة (Trends, Reels) لزيادة الوصول والتفاعل.",],
+  kpis:["نسبة المحتوى الخادم للأهداف الاستراتيجية المحددة مسبقاً.",
+        "الزيادة في Reach لغير المتابعين عبر خوارزميات Reels.",
+        "المنشورات المنشورة دون أخطاء فنية أو لغوية.",
+        "نسبة الالتزام بتقويم النشر اليومي والموسمي."]
+},
+
+sally: {
+  name:"سالي نزار نصار", title:"رئيسة القسم الإبداعي  |  Creative Division Head",
+  badge:"📣 وحدة المحتوى", badgeColor:"#14a5a8", badgeBg:"rgba(15,113,115,0.12)",
+  accentColor:"#0f7173",
+  objective:"حماية الهوية البصرية وضمان الجودة الفنية العالية لكافة مخرجات الفريق الإعلامية، وقياس أثر المحتوى دورياً.",
+  tasks:["جدولة ونشر المحتوى دورياً عبر جميع منصات التواصل الاجتماعي.",
+         "التدقيق النهائي للسكربتات والمطبوعات والمخرجات البصرية قبل النشر.",
+         "تحليل أداء المنشورات بناءً على مؤشرات الوصول والتفاعل لتطوير المحتوى.",],
+  kpis:["نسبة مطابقة التصاميم لدليل الهوية البصرية (المستهدف: 100%).",
+        "تقييم جودة المواد الفيلمية الموثقة من الميدان.",
+        "تحسن الإعجابات وحفظ المنشورات مقارنة بالفترات السابقة.",
+        "عدد المواد ثنائية اللغة (عربي/إنجليزي) لأسواق تبرع دولية."]
+},
+
+insaf: {
+  name:"إنصاف علاء حبيب", title:"أخصائية السرد القصصي  |  Storytelling & Impact Specialist",
+  badge:"📣 وحدة المحتوى", badgeColor:"#14a5a8", badgeBg:"rgba(15,113,115,0.12)",
+  accentColor:"#0f7173",
+  objective:"تحويل الأرقام والبيانات الميدانية الجافة إلى قصص إنسانية مؤثرة تُحرك قرارات التبرع وتوثق أثر مبادرات الفريق.",
+  tasks:["تحويل الإحصائيات الميدانية إلى قصص إنسانية جذابة تبرز احتياجات النازحين.",
+         "كتابة نصوص الحملات الإعلانية بأرقام واضحة تُسهّل قرار التبرع.",
+         "صياغة تقارير الأثر الدورية بأسلوب يقنع المانح الدولي والمحلي.",
+         "تطوير أفكار Reels والقصص الرقمية وابتكار Hooks جاذبة.",
+         "الإشراف على التوثيق الميداني الاحترافي لبناء الثقة مع الجمهور.",],
+  kpis:["حجم التبرعات المباشرة الناتجة عن قصص وحملات محددة.",
+        "عدد Shares التي تحصدها قصص التدخل الإغاثي (قبل وبعد).",
+        "تقييم الإدارة والمانحين لجودة تقارير الأثر الدورية.",
+        "نسبة النقر (Click-through Rate) على روابط التبرع في المنشورات."]
+},
+
+wasim: {
+  name:"وسيم توفيق الدردساوي", title:"المسؤول المالي  |  Finance Officer",
+  badge:"📊 دعم استراتيجي", badgeColor:"#6baee8", badgeBg:"rgba(37,99,168,0.12)",
+  accentColor:"#2563a8",
+  objective:"الرقابة الصارمة على التدفقات النقدية والتدقيق المالي لضمان الشفافية الكاملة وموثوقية الفريق أمام المانحين.",
+  tasks:["إعداد القيود المحاسبية وتسجيل العمليات المالية اليومية.",
+         "إعداد القوائم المالية الدورية (الدخل، الميزانية العمومية) لدعم القرار.",
+         "ضمان مطابقة المصروفات مع موازنات المشاريع وسياسات المانحين.",
+         "المطابقات البنكية وجرد الصناديق دورياً للتأكد من دقة الأرصدة.",
+         "إعداد الموازنات التقديرية والتقارير المالية للجهات المانحة.",
+         "أتمتة العمليات المحاسبية لرفع الكفاءة وتقليل الأخطاء اليدوية.",],
+  kpis:["نسبة خلو التقارير الشهرية من الأخطاء (المستهدف: 100%).",
+        "الالتزام بمواعيد الإغلاق المالي الشهري والسنوي.",
+        "نسبة الانحراف بين المصاريف الفعلية والموازنات المخططة.",
+        "نسبة العمليات المؤتمتة من إجمالي العمليات المالية."],
+  note:"يُنصح بربط المسؤول المالي مباشرة بقائد الفريق في خط التقارير، وحصوله على تدريب FMD لمتطلبات المانحين الدوليين."
+},
+
+ahmed: {
+  name:"أحمد بهجت بدير", title:"مدير الجودة الإدارية  |  Administrative Quality Manager",
+  badge:"🏛️ دعم استراتيجي", badgeColor:"#6baee8", badgeBg:"rgba(37,99,168,0.12)",
+  accentColor:"#2563a8",
+  objective:"بناء الأنظمة الإدارية الداخلية وضمان التوافق القانوني وسير العمل وفق الرؤية الاستراتيجية ومعايير الحوكمة المؤسسية.",
+  tasks:["صياغة اللوائح الإدارية والسياسات المؤسسية (SOPs) وتوثيقها.",
+         "الإشراف على شؤون الموظفين: التوظيف، الحضور، الإجازات، تقييم الأداء.",
+         "صياغة وإدارة العقود القانونية وضمان الامتثال للمتطلبات الرسمية.",
+         "تحديد الاحتياجات التدريبية وتنفيذ برامج تطويرية لسد الفجوات.",
+         "ضمان جودة بيئة العمل ورفاهية الموظفين.",],
+  kpis:["نسبة اكتمال صياغة الأدلة الإجرائية (SOPs) لجميع الأقسام.",
+        "تقليل معدل دوران العمل (Turnover Rate) بنسبة محددة.",
+        "سجل امتثال قانوني خالٍ من المخالفات والغرامات.",
+        "نسبة تنفيذ خطة التدريب السنوية وأثرها على الأداء."]
+},
+
+meal: {
+  name:"منصب شاغر", title:"مسؤول المتابعة والتقييم  |  MEAL Officer",
+  badge:"🔴 منصب شاغر", badgeColor:"#f07030", badgeBg:"rgba(212,88,10,0.1)",
+  accentColor:"#d4580a", isVacant:true,
+  objective:"ضمان تنفيذ المشاريع وفق المعايير الفنية، وقياس الأثر الفعلي، والإشراف على مدى التزام كافة الوحدات بـ KPIs الخاصة بها للانتقال إلى الإدارة بالنتائج.",
+  tasks:["الإشراف المستمر على التزام جميع الوحدات بمؤشرات الأداء المعتمدة.",
+         "بناء نماذج تقارير موحدة تُلزم الأقسام برفع بياناتها بدقة.",
+         "زيارات تفتيشية دورية للتأكد من مطابقة التنفيذ للمواصفات الفنية.",
+         "رصد الانحرافات عن المستهدفات وتقديم تقارير تصحيحية فورية.",
+         "تفعيل آليات استقبال الشكاوى والتغذية الراجعة من المستفيدين.",
+         "قياس الأثر الإنساني بأدلة رقمية وقصصية.",],
+  kpis:["نسبة الوحدات المحققة لمستهدفاتها بناءً على تقارير التدقيق.",
+        "نسبة التزام الأقسام برفع التقارير في مواعيدها (المستهدف: 100%).",
+        "مدى مطابقة تقارير الوحدات للواقع الميداني.",
+        "متوسط الوقت لتنفيذ التوصيات التصحيحية."]
+},
+
+secretary: {
+  name:"منصب شاغر", title:"السكرتير التنفيذي  |  Executive Secretary",
+  badge:"🔴 منصب شاغر", badgeColor:"#f07030", badgeBg:"rgba(212,88,10,0.1)",
+  accentColor:"#d4580a", isVacant:true,
+  objective:"دعم الإدارة العليا من خلال تنظيم التدفق الإداري وإدارة الأرشفة والمراسلات وضمان كفاءة التنظيم المكتبي.",
+  tasks:["تنظيم وحفظ الملفات الورقية والإلكترونية بنظام يضمن سهولة الوصول.",
+         "جدولة لقاءات الإدارة العليا وتجهيز الأجندة والمتطلبات اللوجستية.",
+         "استقبال وتوجيه البريد الوارد والصادر وصياغة الخطابات الرسمية.",
+         "تدوين قرارات الاجتماعات ومتابعة تعميمها على الأقسام المعنية.",
+         "العمل كحلقة وصل لتنسيق الطلبات بين الوحدات والإدارة العليا.",
+         "تذكير الإدارة بالمواعيد النهائية والمهام العالقة.",],
+  kpis:["سرعة الوصول لأي وثيقة مؤرشفة.",
+        "انعدام التضارب في مواعيد اجتماعات الإدارة.",
+        "دقة محاضر الاجتماعات وسرعة توزيعها (خلال 24 ساعة).",
+        "نسبة المراسلات المعالجة في وقتها دون تأخير."]
+},
+
+};
+
+// ═══════════════════════════════════════════════
+// PANEL LOGIC
+// ═══════════════════════════════════════════════
+function openPanel(id) {
+  const d = DATA[id]; if(!d) return;
+  const overlay = document.getElementById('overlay');
+  const panel   = document.getElementById('panel');
+
+  // Badge
+  const badge = document.getElementById('panel-badge');
+  badge.textContent = d.badge;
+  badge.style.color = d.badgeColor;
+  badge.style.background = d.badgeBg;
+  badge.style.border = `1px solid ${d.badgeColor}40`;
+
+  // Header accent
+  panel.style.setProperty('--panel-accent', d.accentColor);
+  document.getElementById('panel-header').style.setProperty('--panel-accent', d.accentColor);
+
+  document.getElementById('panel-name').textContent = d.name;
+  document.getElementById('panel-title').textContent = d.title;
+
+  // Body
+  let html = '';
+
+  // Objective
+  if(d.objective) {
+    html += `<div class="panel-section">
+      <div class="panel-section-title">الهدف الوظيفي</div>
+      <div class="objective-box">${d.objective}</div>
+    </div>`;
+  }
+
+  // Tasks
+  if(d.tasks && d.tasks.length) {
+    const isUnit = d.isUnit;
+    const label = isUnit ? 'محاور عمل الوحدة' : 'المهام الوظيفية';
+    html += `<div class="panel-section">
+      <div class="panel-section-title">${label}</div>
+      <div class="task-list">`;
+    d.tasks.forEach((t,i) => {
+      const [head,...rest] = t.split(':');
+      const body = rest.length ? ': ' + rest.join(':') : '';
+      html += `<div class="task-item">
+        <div class="task-num" style="background:${d.accentColor}22;color:${d.accentColor}">${i+1}</div>
+        <div class="task-text"><strong>${head}</strong>${body}</div>
+      </div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  // KPIs
+  if(d.kpis && d.kpis.length) {
+    const kpiClass = d.accentColor === '#d4580a' ? 'kpi-orange' : d.accentColor === '#2563a8' ? 'kpi-blue' : '';
+    html += `<div class="panel-section">
+      <div class="panel-section-title">مؤشرات قياس الأداء (KPIs)</div>
+      <div class="kpi-grid">`;
+    d.kpis.forEach(k => {
+      html += `<div class="kpi-item ${kpiClass}">${k}</div>`;
+    });
+    html += `</div></div>`;
+  }
+
+  // Note
+  if(d.note) {
+    html += `<div class="panel-section">
+      <div class="panel-section-title">توصية مهنية</div>
+      <div class="objective-box" style="border-right-color:#2563a8">${d.note}</div>
+    </div>`;
+  }
+
+  // Vacant notice
+  if(d.isVacant) {
+    html += `<div class="vacant-notice">
+      <div class="icon">🔴</div>
+      <div class="msg"><strong>منصب شاغر</strong> — هذا الدور معرّف ومُوصَّف ضمن الهيكل التنظيمي المقترح ويحتاج إلى استقطاب وتوظيف. الأولوية محددة بناءً على احتياج الفريق التشغيلي.</div>
+    </div>`;
+  }
+
+  document.getElementById('panel-body').innerHTML = html;
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closePanel() {
+  document.getElementById('overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function closeOnOverlay(e) {
+  if(e.target === document.getElementById('overlay')) closePanel();
+}
+
+document.addEventListener('keydown', e => {
+  if(e.key === 'Escape') closePanel();
+});
+
+// ═══════════════════════════════════════════════
+// DRAW SVG CONNECTORS
+// ═══════════════════════════════════════════════
+window.addEventListener('load', () => {
+  setTimeout(drawConnectors, 200);
+  window.addEventListener('resize', drawConnectors);
+});
+
+function drawConnectors() {
+  const svg = document.getElementById('connectors');
+  const chart = svg.parentElement;
+  svg.innerHTML = '';
+
+  const leaderCard = document.querySelector('.leader-card');
+  const units = document.querySelectorAll('.unit-header');
+
+  if(!leaderCard || units.length === 0) return;
+
+  const chartRect = chart.getBoundingClientRect();
+  const leaderRect = leaderCard.getBoundingClientRect();
+
+  const lx = leaderRect.left - chartRect.left + leaderRect.width / 2;
+  const ly = leaderRect.top  - chartRect.top  + leaderRect.height;
+
+  units.forEach((u, i) => {
+    const ur = u.getBoundingClientRect();
+    const ux = ur.left - chartRect.left + ur.width / 2;
+    const uy = ur.top  - chartRect.top;
+
+    const midY = ly + (uy - ly) * 0.5;
+    const path = `M ${lx} ${ly} C ${lx} ${midY}, ${ux} ${midY}, ${ux} ${uy}`;
+    const el = document.createElementNS('http://www.w3.org/2000/svg','path');
+    el.setAttribute('d', path);
+    el.setAttribute('class', 'connector');
+    svg.appendChild(el);
+  });
+
+  // strategic support
+  const strategic = document.querySelectorAll('.strategic-grid .role-card');
+  strategic.forEach(s => {
+    const sr = s.getBoundingClientRect();
+    const sx = sr.left - chartRect.left + sr.width / 2;
+    const sy = sr.top  - chartRect.top;
+
+    const midY = ly + (sy - ly) * 0.65;
+    const path = `M ${lx} ${ly} C ${lx} ${midY}, ${sx} ${midY}, ${sx} ${sy}`;
+    const el = document.createElementNS('http://www.w3.org/2000/svg','path');
+    el.setAttribute('d', path);
+    el.setAttribute('class', 'connector connector-blue');
+    svg.appendChild(el);
+  });
+
+  svg.setAttribute('width', chart.scrollWidth);
+  svg.setAttribute('height', chart.scrollHeight);
+}
+</script>
+</body>
+</html>
